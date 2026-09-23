@@ -55,6 +55,12 @@ func jscmd(t *testing.T, sets []setCase, colors []colorCase) (enabled [][]bool, 
 	if _, err := os.Stat(filepath.Join("original", "src", "index.js")); err != nil {
 		t.Fatalf("original debug not found: %v", err)
 	}
+	// The driver requires debug's own dependency (ms). node_modules is not
+	// committed, so a checkout without `npm ci --omit=dev` in original/ skips —
+	// a skip is never a pass. CI installs it from the lockfile.
+	if _, err := os.Stat(filepath.Join("original", "node_modules", "ms")); err != nil {
+		t.Skip("original/node_modules/ms missing: run `npm ci --omit=dev` in original/ to compare with real debug")
+	}
 	driver := `const dx=require(process.env.DBGO);
 const data=JSON.parse(process.argv[1]);
 const enabled=[];
